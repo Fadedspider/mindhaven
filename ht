@@ -1,0 +1,134 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.ensemble import RandomForestClassifier, VotingClassifier
+from sklearn.svm import SVC
+from xgboost import XGBClassifier
+from sklearn.metrics import classification_report
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+import joblib
+import optuna
+
+# Load the data
+data = pd.read_csv('audio_mood_data.csv')
+print(f"Loaded {len(data)} samples")
+
+# Check class distribution
+print("Class distribution:")
+print(data['mood'].value_counts())
+
+# Handle missing values
+data = data.dropna()
+
+# Check if we have enough data
+if len(data) < 10:
+    print("Not enough data to train the model. Please collect more audio samples.")
+    exit()
+
+# Split into features and labels
+X = data.drop('mood', axis=1)
+y = data['mood']
+
+# Encode the labels
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y)
+print("Label mapping:")
+for label, encoded in zip(label_encoder.classes_, range(len(label_encoder.classes_))):
+    print(f"{label} -> {encoded}")
+print(f"Encoded labels shape: {y_encoded.shape}")
+print(f"Unique encoded labels: {np.unique(y_encoded)}")
+
+# Save the label encoder
+joblib.dump(label_encoder, 'label_encoder.pkl')
+
+# Split the data into training and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
+
+# Scale the features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Save the scaler for later use in prediction
+joblib.dump(scaler, 'scaler.pkl')
+
+# Define Optuna objective for XGBoost
+def objective(trial):
+    param = {
+        'n_estimators': trial.suggest_int('n_estimators', 50, 300),
+        'max_depth': trial.suggest_int('max_depth', 3, 10),
+        'learning_rate': trial.suggest_float('learning_rate', 0.01, 0.3),
+        'subsample': trial.suggest_float('subsample', 0.5, 1.0),
+        'colsample_bytree': trial.suggest_float('colsample_bytree', 0.5, 1.0)
+    }
+    model = XGBClassifier(eval_metric='mlogloss', random_state=42, **param)
+    model.fit(X_train, y_train)
+    cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='accuracy')
+    return np.mean(cv_scores)
+
+# Optimize XGBoost hyperparameters
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=20)
+best_params = study.best_params
+print(f"Best XGBoost parameters: {best_params}")
+
+# Initialize models with the best XGBoost parameters
+models = {
+    'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42),
+    'SVM': SVC(kernel='rbf', random_state=42, probability=True),
+    'XGBoost': XGBClassifier(eval_metric='mlogloss', random_state=42, **best_params)
+}
+
+# Train and evaluate individual models
+best_model_name = None
+best_model = None
+best_cv_score = 0
+trained_models = {}
+
+for name, model in models.items():
+    print(f"\nTraining {name}...")
+    model.fit(X_train, y_train)
+    cv_scores = cross_val_score(model, X_train, y_train, cv=5, scoring='accuracy')
+    print(f"{name} Cross-Validation Accuracy: {np.mean(cv_scores):.4f} (+/- {np.std(cv_scores) * 2:.4f})")
+    y_pred = model.predict(X_test)
+    print(f"{name} Test Set Evaluation:")
+    print(classification_report(y_test, label_encoder.inverse_transform(y_pred), target_names=label_encoder.classes_))
+    mean_cv_score = np.mean(cv_scores)
+    trained_models[name] = model
+    if mean_cv_score > best_cv_score:
+        best_cv_score = mean_cv_score
+        best_model_name = name
+        best_model = model
+
+# Ensemble with soft voting
+print("\nTraining Soft Voting Ensemble...")
+voting_clf = VotingClassifier(
+    estimators=[
+        ('rf', trained_models['Random Forest']),
+        ('svm', trained_models['SVM']),
+        ('xgb', trained_models['XGBoost'])
+    ],
+    voting='soft'
+)
+voting_clf.fit(X_train, y_train)
+cv_scores = cross_val_score(voting_clf, X_train, y_train, cv=5, scoring='accuracy')
+print(f"Soft Voting Ensemble Cross-Validation Accuracy: {np.mean(cv_scores):.4f} (+/- {np.std(cv_scores) * 2:.4f})")
+y_pred = voting_clf.predict(X_test)
+print("Soft Voting Ensemble Test Set Evaluation:")
+print(classification_report(y_test, label_encoder.inverse_transform(y_pred), target_names=label_encoder.classes_))
+
+# Compare and save the best model
+ensemble_cv_score = np.mean(cv_scores)
+if ensemble_cv_score > best_cv_score:
+    best_model_name = 'Soft Voting Ensemble'
+    best_model = voting_clf
+    best_cv_score = ensemble_cv_score
+
+# Save the best model
+joblib.dump(best_model, 'audio_mood_classifier.pkl')
+print(f"\nBest model ({best_model_name}) saved as audio_mood_classifier.pkl")
+
+# Save the feature columns
+feature_columns = X.columns.tolist()
+joblib.dump(feature_columns, 'feature_columns.pkl')
+print("Feature columns saved as feature_columns.pkl")
