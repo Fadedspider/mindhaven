@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>MindHeaven - Seren</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #d8eefe, #f2f9fc);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .chat-container {
+      width: 90%;
+      max-width: 600px;
+      height: 80vh;
+      background-color: rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      border-radius: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .bubble {
+      max-width: 75%;
+      padding: 10px 15px;
+      border-radius: 18px;
+      font-size: 16px;
+      line-height: 1.4;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .bot {
+      align-self: flex-start;
+      background-color: #e6f2ff;
+      border-bottom-left-radius: 0;
+    }
+
+    .user {
+      align-self: flex-end;
+      background-color: #cce5ff;
+      border-bottom-right-radius: 0;
+    }
+
+    .chat-input {
+      display: flex;
+      border-top: 1px solid #ccc;
+    }
+
+    input[type="text"] {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      outline: none;
+      font-size: 16px;
+      border-radius: 0 0 0 20px;
+    }
+
+    button {
+      background-color: #4a90e2;
+      color: white;
+      border: none;
+      padding: 0 20px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 0 0 20px 0;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+
+<div class="chat-container">
+  <div class="chat-messages" id="chatMessages">
+    <div class="bubble bot">🧘 Hi, I'm Seren. How are you feeling today?</div>
+  </div>
+  <div class="chat-input">
+    <input type="text" id="userInput" placeholder="Type your thoughts..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  function sendMessage() {
+    const input = document.getElementById('userInput');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const messages = document.getElementById('chatMessages');
+
+    // Add user bubble
+    const userBubble = document.createElement('div');
+    userBubble.className = 'bubble user';
+    userBubble.textContent = message;
+    messages.appendChild(userBubble);
+
+    input.value = '';
+
+    // Simulate bot thinking
+    setTimeout(() => {
+      const botBubble = document.createElement('div');
+      botBubble.className = 'bubble bot';
+      botBubble.textContent = getBotResponse(message); // Replace with backend fetch
+      messages.appendChild(botBubble);
+
+      messages.scrollTop = messages.scrollHeight; // Auto-scroll
+    }, 800);
+  }
+
+  function getBotResponse(userMessage) {
+    // Dummy response for now
+    if (userMessage.toLowerCase().includes("anxious")) {
+      return "It’s okay to feel anxious. Let's take a deep breath together 🌬️";
+    }
+    return "I'm here for you. Tell me more.";
+  }
+</script>
+
+</body>
+</html>

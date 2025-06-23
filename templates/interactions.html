@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MindHeaven - Interactions</title>
+    <style>
+        body {
+            background-image: blue;
+            background-size: cover;
+            color: white;
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            margin: 20px auto;
+            border-collapse: collapse;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 10px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        }
+        th {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+            font-size: 1.2em;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Recent Interactions</h1>
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>Timestamp</th>
+            <th>Input Type</th>
+            <th>Transcript</th>
+            <th>Mood</th>
+            <th>Response</th>
+        </tr>
+        {% for interaction in interactions %}
+        <tr>
+            <td>{{ interaction[0] }}</td>
+            <td>{{ interaction[1] }}</td>
+            <td>{{ interaction[2] }}</td>
+            <td>{{ interaction[3] }}</td>
+            <td>{{ interaction[4] }}</td>
+            <td>{{ interaction[5] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/">Back to Home</a>
+</body>
+</html>
