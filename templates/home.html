@@ -1,54 +1,713 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>MindHeaven</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindHaven - Chat with Seren</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-soft: #a8d8ea;
+            --primary-medium: #7fb3d3;
+            --primary-deep: #5d737e;
+            --secondary-light: #ffeaa7;
+            --secondary-medium: #fdcb6e;
+            --accent-pink: #fd79a8;
+            --accent-purple: #6c5ce7;
+            --text-primary: #2d3436;
+            --text-secondary: #636e72;
+            --text-light: #74b9ff;
+            --bg-gradient: linear-gradient(135deg, #a8d8ea 0%, #7fb3d3 50%, #ffeaa7 100%);
+            --chat-bg: rgba(255, 255, 255, 0.95);
+            --user-bubble: linear-gradient(135deg, #74b9ff, #0984e3);
+            --seren-bubble: linear-gradient(135deg, #fd79a8, #fdcb6e);
+            --shadow-soft: 0 8px 32px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.15);
+            --border-radius: 24px;
+            --transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
         body {
-            background-image: url('/static/seren_calm.gif');   
-            background-size: cover;
-            color: transparent;
-            text-align: center;
-            font-size: 20px;
-            font-weight: bold;
-            font-family: Arial, sans-serif;
-        }
-        button {
-            background-color: #333e63;
-            color: rgb(37, 10, 63);
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-        }
-        input {
-            padding: 5px;
-            margin: 5px;
-        }
-        #serenAnimation {
-            width: 2400px;
-            height: 1200px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
             position: relative;
-            top: 50%;
-            display: block;
+            overflow-x: hidden;
+        }
+
+        /* Floating elements for ambiance */
+        .ambient-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 15s infinite ease-in-out;
+        }
+
+        .shape-1 { width: 60px; height: 60px; top: 20%; left: 10%; animation-delay: 0s; }
+        .shape-2 { width: 40px; height: 40px; top: 60%; right: 15%; animation-delay: 5s; }
+        .shape-3 { width: 80px; height: 80px; bottom: 30%; left: 20%; animation-delay: 10s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            33% { transform: translateY(-20px) rotate(120deg); }
+            66% { transform: translateY(10px) rotate(240deg); }
+        }
+
+        /* Header */
+        .chat-header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .seren-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--seren-bubble);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow-soft);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .seren-avatar img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+
+        .online-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 12px;
+            height: 12px;
+            background: #00b894;
+            border: 2px solid white;
+            border-radius: 50%;
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); box-shadow: 0 0 10px rgba(0, 184, 148, 0.5); }
+        }
+
+        .chat-info h2 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .chat-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .header-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .header-btn:hover {
+            background: rgba(116, 185, 255, 0.1);
+            color: var(--text-light);
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
             margin: 0 auto;
+            width: 100%;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            scroll-behavior: smooth;
+            max-height: calc(100vh - 200px);
+        }
+
+        .messages-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .messages-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .messages-area::-webkit-scrollbar-thumb {
+            background: rgba(116, 185, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        /* Message Bubbles */
+        .message {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.5rem;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            padding: 1rem 1.2rem;
+            border-radius: var(--border-radius);
+            position: relative;
+            box-shadow: var(--shadow-soft);
+            word-wrap: break-word;
+        }
+
+        .message.seren .message-bubble {
+            background: var(--seren-bubble);
+            color: white;
+            border-bottom-left-radius: 8px;
+        }
+
+        .message.user .message-bubble {
+            background: var(--user-bubble);
+            color: white;
+            border-bottom-right-radius: 8px;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 0.3rem;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .message.seren .message-avatar {
+            background: var(--seren-bubble);
+        }
+
+        .message.user .message-avatar {
+            background: var(--user-bubble);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 0;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typingBounce 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typingBounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Quick Actions */
+        .quick-actions {
+            padding: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .quick-actions::-webkit-scrollbar {
+            display: none;
+        }
+
+        .quick-btn {
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            white-space: nowrap;
+            color: var(--text-primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .quick-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            background: white;
+        }
+
+        /* Input Area */
+        .input-area {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            padding: 1rem 1.5rem;
+            border-top: 1px solid rgba(116, 185, 255, 0.2);
+            position: sticky;
+            bottom: 0;
+        }
+
+        .input-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 0.8rem;
+            max-width: 100%;
+        }
+
+        .text-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .text-input {
+            width: 100%;
+            min-height: 44px;
+            max-height: 120px;
+            padding: 0.8rem 1rem;
+            border: 2px solid rgba(116, 185, 255, 0.3);
+            border-radius: 22px;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: none;
+            background: rgba(255, 255, 255, 0.9);
+            transition: var(--transition);
+        }
+
+        .text-input:focus {
+            outline: none;
+            border-color: var(--text-light);
+            box-shadow: 0 0 0 3px rgba(116, 185, 255, 0.1);
+        }
+
+        .input-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-btn {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        .send-btn {
+            background: var(--user-bubble);
+            color: white;
+            box-shadow: var(--shadow-soft);
+        }
+
+        .send-btn:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .voice-btn {
+            background: rgba(253, 121, 168, 0.1);
+            color: var(--accent-pink);
+            border: 2px solid rgba(253, 121, 168, 0.3);
+        }
+
+        .voice-btn:hover, .voice-btn.recording {
+            background: var(--accent-pink);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .voice-btn.recording {
+            animation: pulse-record 1.5s infinite;
+        }
+
+        @keyframes pulse-record {
+            0%, 100% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: var(--text-secondary);
+        }
+
+        .welcome-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .welcome-subtitle {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Mood Display */
+        .mood-indicator-chat {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+        }
+
+        .mood-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 1rem;
+            }
+            
+            .messages-area {
+                padding: 1rem;
+                max-height: calc(100vh - 180px);
+            }
+            
+            .message-bubble {
+                max-width: 85%;
+            }
+            
+            .input-area {
+                padding: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>MindHeaven</h1>
-    <a href="/interactions">int</a>
-    <img id="serenAnimation" src="/static/seren_calm.gif" alt="Seren">
-    <p>Speak to Seren!</p>
-    <button onclick="startRecording()">Record Audio</button>
-    <button onclick="stopRecording()" style="display: none;" id="stopButton">Stop Recording</button>
-    <input type="text" id="textInput" placeholder="Type your feelings...">
-    <button onclick="sendText()">Submit Text</button>
-    <p id="moodDisplay">Detected Mood: </p>
-    <p id="responseDisplay"></p>
-    <audio id="responseAudio" controls></audio>
+    <!-- Ambient Elements -->
+    <div class="ambient-elements">
+        <div class="floating-shape shape-1"></div>
+        <div class="floating-shape shape-2"></div>
+        <div class="floating-shape shape-3"></div>
+    </div>
+
+    <!-- Chat Header -->
+    <header class="chat-header">
+        <div class="header-left">
+            <div class="seren-avatar">
+                <img id="headerSerenAvatar" src="/static/seren_calm.gif" alt="Seren">
+                <div class="online-indicator"></div>
+            </div>
+            <div class="chat-info">
+                <h2>Seren</h2>
+                <p class="chat-status" id="chatStatus">Online • Ready to listen</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="header-btn" onclick="clearChat()" title="Clear Chat">
+                <i class="fas fa-trash-alt"></i>
+            </button>
+            <a href="/interactions" class="header-btn" title="View Interactions">
+                <i class="fas fa-chart-line"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <!-- Welcome Message -->
+            <div class="welcome-message">
+                <h3 class="welcome-title">Welcome to MindHaven 🌸</h3>
+                <p class="welcome-subtitle">
+                    I'm Seren, your personal mental wellness companion. I'm here to listen, 
+                    understand, and support you through whatever you're experiencing. 
+                    Feel free to share your thoughts, feelings, or just say hello!
+                </p>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="message-avatar"></div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+                <span>Seren is typing...</span>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="sendQuickMessage('How are you today?')">
+                <i class="fas fa-smile"></i> How are you?
+            </button>
+            <button class="quick-btn" onclick="sendQuickMessage('I need someone to talk to')">
+                <i class="fas fa-comments"></i> I need to talk
+            </button>
+            <button class="quick-btn" onclick="sendQuickMessage('I am feeling anxious')">
+                <i class="fas fa-heart"></i> Feeling anxious
+            </button>
+            <button class="quick-btn" onclick="sendQuickMessage('Can you help me feel better?')">
+                <i class="fas fa-hands-helping"></i> Need support
+            </button>
+            <button class="quick-btn" onclick="sendQuickMessage('I had a good day today!')">
+                <i class="fas fa-sun"></i> Good day!
+            </button>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <div class="text-input-wrapper">
+                    <textarea 
+                        id="textInput" 
+                        class="text-input" 
+                        placeholder="Share your thoughts with Seren..."
+                        rows="1"
+                    ></textarea>
+                </div>
+                <div class="input-actions">
+                    <button class="action-btn voice-btn" id="voiceBtn" onclick="toggleRecording()">
+                        <i class="fas fa-microphone" id="voiceIcon"></i>
+                    </button>
+                    <button class="action-btn send-btn" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script>
         let mediaRecorder;
         let audioChunks = [];
+        let isRecording = false;
+        let conversationHistory = [];
+
+        // Auto-resize textarea
+        const textInput = document.getElementById('textInput');
+        textInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Send message on Enter (but allow Shift+Enter for new line)
+        textInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function addMessage(content, sender, mood = null, timestamp = new Date()) {
+            const messagesArea = document.getElementById('messagesArea');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+
+            const timeString = timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            let avatarContent = '';
+            if (sender === 'seren') {
+                avatarContent = `<img src="/static/seren_calm.gif" alt="Seren" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+            } else {
+                avatarContent = '<i class="fas fa-user"></i>';
+            }
+
+            let moodDisplay = '';
+            if (mood && sender === 'seren') {
+                moodDisplay = `<div class="mood-indicator-chat">
+                    <div class="mood-dot"></div>
+                    <span>Detected: ${mood}</span>
+                </div>`;
+            }
+
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatarContent}</div>
+                <div class="message-bubble">
+                    ${content}
+                    ${moodDisplay}
+                    <div class="message-time">${timeString}</div>
+                </div>
+            `;
+
+            messagesArea.appendChild(messageDiv);
+            scrollToBottom();
+
+            // Store in conversation history
+            conversationHistory.push({
+                content: content,
+                sender: sender,
+                mood: mood,
+                timestamp: timestamp
+            });
+        }
+
+        function showTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'flex';
+            document.getElementById('chatStatus').textContent = 'Typing...';
+            scrollToBottom();
+        }
+
+        function hideTypingIndicator() {
+            document.getElementById('typingIndicator').style.display = 'none';
+            document.getElementById('chatStatus').textContent = 'Online • Ready to listen';
+        }
+
+        function scrollToBottom() {
+            const messagesArea = document.getElementById('messagesArea');
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+
+        function sendMessage() {
+            const text = textInput.value.trim();
+            if (!text) return;
+
+            // Add user message
+            addMessage(text, 'user');
+            textInput.value = '';
+            textInput.style.height = 'auto';
+
+            // Show typing indicator
+            showTypingIndicator();
+
+            // Send to backend
+            fetch('/process_audio', {
+                method: 'POST',
+                body: JSON.stringify({ text: text }),
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                
+                // Add Seren's response
+                const response = data.response || "I'm here to help. Please tell me more about how you're feeling.";
+                addMessage(response, 'seren', data.mood);
+                
+                // Update Seren avatar
+                updateSerenAnimation(data.mood);
+                
+                // Handle audio response
+                if (data.audio) {
+                    playAudioResponse(data.audio);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                hideTypingIndicator();
+                addMessage("I'm sorry, I'm having trouble connecting right now. Please try again.", 'seren');
+            });
+        }
+
+        function sendQuickMessage(message) {
+            textInput.value = message;
+            sendMessage();
+        }
+
+        function toggleRecording() {
+            if (!isRecording) {
+                startRecording();
+            } else {
+                stopRecording();
+            }
+        }
 
         function startRecording() {
             navigator.mediaDevices.getUserMedia({ audio: true })
@@ -56,97 +715,144 @@
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.ondataavailable = event => {
                         audioChunks.push(event.data);
-                        console.log('Audio chunk recorded:', event.data, 'Size:', event.data.size);
                     };
                     mediaRecorder.onstop = () => {
                         const audioBlob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
-                        console.log('Audio Blob created:', audioBlob, 'Size:', audioBlob.size, 'Type:', audioBlob.type);
                         sendAudio(audioBlob);
+                        stream.getTracks().forEach(track => track.stop());
                     };
+
                     audioChunks = [];
                     mediaRecorder.start();
-                    console.log('Recording started');
-                    document.getElementById('stopButton').style.display = 'inline';
+                    isRecording = true;
+
+                    // Update UI
+                    const voiceBtn = document.getElementById('voiceBtn');
+                    const voiceIcon = document.getElementById('voiceIcon');
+                    voiceBtn.classList.add('recording');
+                    voiceIcon.className = 'fas fa-stop';
+                    
+                    // Show recording message
+                    addMessage('🎤 Recording...', 'user');
                 })
-                .catch(error => console.error('Error accessing microphone:', error));
+                .catch(error => {
+                    console.error('Error accessing microphone:', error);
+                    addMessage("I can't access your microphone. Please check your permissions and try again.", 'seren');
+                });
         }
 
         function stopRecording() {
-            mediaRecorder.stop();
-            console.log('Recording stopped');
-            document.getElementById('stopButton').style.display = 'none';
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                isRecording = false;
+
+                // Update UI
+                const voiceBtn = document.getElementById('voiceBtn');
+                const voiceIcon = document.getElementById('voiceIcon');
+                voiceBtn.classList.remove('recording');
+                voiceIcon.className = 'fas fa-microphone';
+
+                // Show processing message
+                showTypingIndicator();
+            }
         }
 
         function sendAudio(audioBlob) {
             const formData = new FormData();
             formData.append('audio', audioBlob, 'recording.webm');
-            console.log('Sending FormData with audio:', audioBlob, 'Size:', audioBlob.size);
+
             fetch('/process_audio', {
                 method: 'POST',
                 body: formData
             })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Server response:', data);
-                    document.getElementById('moodDisplay').innerText = `Detected Mood: ${data.mood}`;
-                    document.getElementById('responseDisplay').innerText = data.response;
-                    document.getElementById('responseAudio').src = data.audio;
-                    updateSerenAnimation(data.mood);
-                })
-                .catch(error => console.error('Error:', error));
-        }
-
-        function sendText() {
-            const text = document.getElementById('textInput').value;
-            console.log('Sending text:', text);
-            fetch('/process_audio', {
-                method: 'POST',
-                body: JSON.stringify({ text: text }),
-                headers: { 'Content-Type': 'application/json' }
+            .then(response => response.json())
+            .then(data => {
+                hideTypingIndicator();
+                
+                // Add Seren's response
+                const response = data.response || "I heard your voice message. Please tell me more about how you're feeling.";
+                addMessage(response, 'seren', data.mood);
+                
+                // Update Seren avatar
+                updateSerenAnimation(data.mood);
+                
+                // Handle audio response
+                if (data.audio) {
+                    playAudioResponse(data.audio);
+                }
             })
-                .then(response => {
-                    console.log('Response status:', response.status);
-                    return response.json();
-                })
-                .then(data => {
-                    console.log('Server response:', data);
-                    document.getElementById('moodDisplay').innerText = `Detected Mood: ${data.mood}`;
-                    document.getElementById('responseDisplay').innerText = data.response;
-                    document.getElementById('responseAudio').src = data.audio;
-                    updateSerenAnimation(data.mood);
-                })
-                .catch(error => console.error('Error:', error));
+            .catch(error => {
+                console.error('Error:', error);
+                hideTypingIndicator();
+                addMessage("I'm sorry, I couldn't process your voice message. Please try again.", 'seren');
+            });
         }
 
         function updateSerenAnimation(mood) {
-            const serenAnimation = document.getElementById('serenAnimation');
+            const avatars = document.querySelectorAll('#headerSerenAvatar, .message.seren .message-avatar img');
+            
+            let gifSrc = "/static/seren_calm.gif";
             switch (mood) {
                 case "stress":
                 case "sadness":
-                    serenAnimation.src = "/static/seren_sad.gif";
-                    break;
-                case "neutral":
-                    serenAnimation.src = "/static/seren_calm.gif";
+                    gifSrc = "/static/seren_sad.gif";
                     break;
                 case "thinking":
-                    serenAnimation.src = "/static/seren_thinking.gif";
+                    gifSrc = "/static/seren_thinking.gif";
                     break;
                 case "comforting":
-                    serenAnimation.src = "/static/seren_comforting.gif";
+                    gifSrc = "/static/seren_comforting.gif";
                     break;
                 case "excited":
-                    serenAnimation.src = "/static/seren_excited.gif";
+                    gifSrc = "/static/seren_excited.gif";
                     break;
                 case "mindful":
-                    serenAnimation.src = "/static/seren_mindful.gif";
+                    gifSrc = "/static/seren_mindful.gif";
                     break;
-                default:
-                    serenAnimation.src = "/static/seren_calm.gif";
+            }
+
+            avatars.forEach(avatar => {
+                if (avatar) {
+                    avatar.src = gifSrc;
+                }
+            });
+        }
+
+        function playAudioResponse(audioSrc) {
+            const audio = new Audio(audioSrc);
+            audio.play().catch(error => {
+                console.log('Audio autoplay prevented:', error);
+            });
+        }
+
+        function clearChat() {
+            if (confirm('Are you sure you want to clear this conversation?')) {
+                const messagesArea = document.getElementById('messagesArea');
+                messagesArea.innerHTML = `
+                    <div class="welcome-message">
+                        <h3 class="welcome-title">Fresh Start 🌱</h3>
+                        <p class="welcome-subtitle">
+                            I'm here whenever you're ready to talk. What's on your mind today?
+                        </p>
+                    </div>
+                    <div class="typing-indicator" id="typingIndicator">
+                        <div class="message-avatar"></div>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        <span>Seren is typing...</span>
+                    </div>
+                `;
+                conversationHistory = [];
             }
         }
+
+        // Initialize with a gentle greeting
+        setTimeout(() => {
+            addMessage("Hello! I'm so glad you're here. How are you feeling today? 🌸", 'seren');
+        }, 1000);
     </script>
 </body>
 </html>
