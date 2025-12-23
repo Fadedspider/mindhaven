@@ -101,6 +101,3 @@ The app aims to offer a safe, non-judgmental space for users to express their fe
 
 ---
 
-**Made with ❤️ for mental well-being**
-
-Feel free to customize the repository name, add screenshots, or update the banner image link once you have visuals ready! Let me know if you want a `requirements.txt` example or badges (like Python version, license, etc.) added.
